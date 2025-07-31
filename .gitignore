@@ -1,0 +1,36 @@
+# VS Code settings
+.vscode/
+
+# Build output
+*.nex
+*.bin
+*.lst
+*.map
+*.o
+*.obj
+*.tmp
+
+# Sjasmplus intermediate files
+*.ihx
+*.no$gmb
+*.tap
+*.sna
+*.hex
+
+# Logs
+*.log
+
+# OS-specific
+Thumbs.db
+.DS_Store
+
+# User-specific
+*.swp
+*.swo
+*.bak
+
+# Ignore test results
+*.test.*
+*.out
+
+# Node modules (if any JS tooling

@@ -1,0 +1,38 @@
+{
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "type": "dezog",
+                "request": "launch",
+                "name": "Z80 Debugger",                
+                "remoteType": "cspect",      
+  // connect to the CSpect emulator via TCIP          
+                "cspect": 
+                {
+                        "hostname": "localhost",
+                        "port": 11000
+                },
+  // connect to shiny Next hardware via USB serial
+                "zxnext": 
+                {
+                        "baudrate": 230400,
+                        "port": "/dev/tty.usbserial"
+                },
+                "rootFolder": "${workspaceFolder}",
+                "listFiles": [
+                  {
+                      "path": "${fileDirname}/${fileBasenameNoExtension}.lst",
+                      "useFiles": true,
+                      "asm": "C:/Users/paulw/Development/8-bit/bin/sjasmplus-1.21.0.win/sjasmplus.exe",
+                      "mainFile": "${fileDirname}/${fileBasenameNoExtension}.asm"
+                  }
+                ],
+                "disassemblerArgs": {
+                    "esxdosRst": true
+                },
+                "load": "${fileBasenameNoExtension}.nex",
+                "skipInterrupt": false,
+                "startAutomatically": false
+            }
+        ]
+    }

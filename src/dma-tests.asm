@@ -1,3 +1,6 @@
+                OPT     --zxnext    
+                DEVICE  ZXSPECTRUMNEXT
+
 ; -----------------------------------------------------------
 ; SECTION: Segments
 ; -----------------------------------------------------------
@@ -73,8 +76,7 @@ wr0_some_expected:
     db ((1<<2)|(1<<4))    ; base flags: PA_MSB and BL_MSB
     db 0xAA, 0xBB
 
-TEST DMA_WR0_None
-    ; No parameters present
+TEST DMA_WR0_Non    ; No parameters present
     wr0_none_start:
         DMA_WR0 -1, -1, -1, -1
     wr0_none_end:
