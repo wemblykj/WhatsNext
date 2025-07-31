@@ -11,13 +11,13 @@
 ; SECTION: Macros
 ; -----------------------------------------------------------
 ; Macro to define a test (collects test addresses in a table)
-macro TEST name
-    .name:
-endm
+    macro TEST name
+        name:
+    endm
 
-macro ENDT
-    ; End of test
-endm
+    macro ENDT
+        ; End of test
+    endm
 
 ; -----------------------------------------------------------
 ; SECTION: Temporary Variables

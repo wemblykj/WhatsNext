@@ -11,13 +11,6 @@
 ;   SECTION code_user: ORG $8000
 ;   SECTION data_user: ORG $C000
 
-SECTION code_user
-    ; Place code here (e.g., DMA routines)
-ENDS
-
-SECTION data_user
-    ; Place data here (e.g., DMA tables, buffers)
-ENDS
 ;              (Direct Memory Access) routines and definitions.
 ; -----------------------------------------------------------
 
@@ -27,7 +20,7 @@ ENDS
 ;#include "hardware.inc"      ; Example include
 ;#include "macros.inc"        ; Example include
 
-#include "dma.inc"
+;    INCLUDE "dma.inc"
 
 ; -----------------------------------------------------------
 ; SECTION: Library Functions (Subroutines)
@@ -46,7 +39,7 @@ dma_block_transfer:
     ld  (dma_program_block_source), hl    ;  update source address in program block
     ld  (dma_program_block_length), bc    ;  update block length in program block
     ld  (dma_program_block_dest), de      ;  update destination address in program block
-    ld  hl, dma_program_block_code        ;  load start of program block code
+    ld  hl, dma_program_block_transfer    ;  load start of program block code
     ld  b, dmaProgramBlockLen             ;  load length of program block code
     ld  c, DMA_PORT_NEXT                  ;  set DMA data port
     otir                                  ;  output program block code to DMA data port

@@ -1,8 +1,8 @@
 ; -----------------------------------------------------------
 ; File:        dma.inc
 ; Project:     WemblyKJ Next - DMA Routines
-; Description: Macros and equates for constructing DMA controller
-;              register commands and programs. Use these macros
+; Description: MACROs and equates for constructing DMA controller
+;              register commands and programs. Use these MACROs
 ;              to build and emit register values for all WRx registers.
 ;              Internal bit masks and shifts are handled automatically.
 ; -----------------------------------------------------------
@@ -81,9 +81,9 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; -----------------------------------------------------------
 ; Usage: DMA_WRx param, mask, static
 ; Applies a mask (AND) and then ORs with static bits.
-macro DMA_WRx param, mask, static
-    db (param & mask) | static
-endm
+    MACRO DMA_WRx param, mask, static
+        db (param & mask) | static
+    ENDM
 
 ; -----------------------------------------------------------
 ; SECTION: PUBLIC MACROS FOR DMA REGISTER COMMANDS
@@ -91,176 +91,159 @@ endm
 
 
 ; Advanced: Use a pre-assembled param value for WR0
-macro DMA_WR0_RAW param
-    DMA_WRx (param << DMA_WR0_LSB), DMA_WR0_MASK, DMA_WR0_STATIC
-endm
+    MACRO DMA_WR0_RAW param
+        DMA_WRx (param << DMA_WR0_LSB), DMA_WR0_MASK, DMA_WR0_STATIC
+    ENDM
 
 ; --- WR0: Direction, operation and port A configuration (base flags only) ---
 ; Usage: DMA_WR0_BASE has_pa_lsb, has_pa_msb, has_bl_lsb, has_bl_msb
 ; Each parameter is 0 (not present) or 1 (present)
-macro DMA_WR0_BASE has_pa_lsb, has_pa_msb, has_bl_lsb, has_bl_msb
-    local flags
-    flags = (has_pa_lsb << 1) | (has_pa_msb << 2) | (has_bl_lsb << 3) | (has_bl_msb << 4)
-    DMA_WR0_RAW flags
-endm
+    MACRO DMA_WR0_BASE td, has_pa_lsb, has_pa_msb, has_bl_lsb, has_bl_msb
+        DMA_WR0_RAW (td | (has_pa_lsb << 1) | (has_pa_msb << 2) | (has_bl_lsb << 3) | (has_bl_msb << 4))
+    ENDM
 
 ; --- WR0: Write base register and optional parameter bytes ---
 ; Usage: DMA_WR0 pa_lsb, pa_msb, bl_lsb, bl_msb
 ; Each parameter: -1 = not present, otherwise value to emit as extra byte
-macro DMA_WR0 pa_lsb, pa_msb, bl_lsb, bl_msb
-    local flags
-    flags = ((pa_lsb != -1) << 1) | ((pa_msb != -1) << 2) | ((bl_lsb != -1) << 3) | ((bl_msb != -1) << 4)
-    DMA_WR0_RAW flags
-    if pa_lsb != -1
-        db pa_lsb
-    endif
-    if pa_msb != -1
-        db pa_msb
-    endif
-    if bl_lsb != -1
-        db bl_lsb
-    endif
-    if bl_msb != -1
-        db bl_msb
-    endif
-endm
+    MACRO DMA_WR0 pa_lsb, pa_msb, bl_lsb, bl_msb
+        DMA_WR0_BASE (pa_lsb != -1),  (pa_msb != -1), (bl_lsb != -1), (bl_msb != -1)
+        if pa_lsb != -1
+            db pa_lsb
+        endif
+        if pa_msb != -1
+            db pa_msb
+        endif
+        if bl_lsb != -1
+            db bl_lsb
+        endif
+        if bl_msb != -1
+            db bl_msb
+        endif
+    ENDM
 
-macro DMA_WR1_RAW param
-    DMA_WRx (param << DMA_WR1_LSB), DMA_WR1_MASK, DMA_WR1_STATIC
-endm
+    MACRO DMA_WR1_RAW param
+        DMA_WRx (param << DMA_WR1_LSB), DMA_WR1_MASK, DMA_WR1_STATIC
+    ENDM
 
 ; --- WR1: Port A configuration (base flags only) ---
 ; Usage: DMA_WR1_BASE src, addrh, has_timing
 ;  src        = Source select (DMA_SRC_MEM or DMA_SRC_IO)
 ;  addrh      = Address mode (DMA_ADDRH_DEC/INC/FIXED)
 ;  has_timing = 0 (no timing byte) or 1 (timing byte present)
-macro DMA_WR1_BASE src, addrh, has_timing
-    local param
-    param = src | (addrh << 1) | (has_timing << 3)
-    DMA_WR1_RAW param
-endm
+    MACRO DMA_WR1_BASE src, addrh, has_timing
+        DMA_WR1_RAW (src | (addrh << 1) | (has_timing << 3))
+    ENDM
 
 ; --- WR1: Port A variable timing ---
 ; Usage: DMA_WR1_TIMING timing
-macro DMA_WR1_TIMING timing
-    local param
-    param = timing
-    DMA_WRx param, DMA_WR1_TIMING_MASK, DMA_WR1_TIMING_STATIC
-endm
+    MACRO DMA_WR1_TIMING timing
+        DMA_WRx timing, DMA_WR1_TIMING_MASK, DMA_WR1_TIMING_STATIC
+    ENDM
 
 ; --- WR1: Write base register and optional timing byte ---
 ; Usage: DMA_WR1 src, addrh, timing
 ;  src     = DMA_SRC_MEM or DMA_SRC_IO
 ;  addrh   = DMA_ADDRH_DEC/INC/FIXED
 ;  timing  = -1 (no timing byte) or timing value
-macro DMA_WR1 src, addrh, timing
-    local param
-    param = src | (addrh << 1) | ((timing != -1) << 3)
-    DMA_WR1_RAW param
-    if timing != -1
-        DMA_WR1_TIMING timing
-    endif
-endm
+    MACRO DMA_WR1 src, addrh, timing
+        DMA_WR1_BASE src, addrh, (timing != -1)
+        if timing != -1
+            DMA_WR1_TIMING timing
+        endif
+    ENDM
 
-macro DMA_WR2_RAW param
-    DMA_WRx (param << DMA_WR2_LSB), DMA_WR2_MASK, DMA_WR2_STATIC
-endm
+    MACRO DMA_WR2_RAW param
+        DMA_WRx (param << DMA_WR2_LSB), DMA_WR2_MASK, DMA_WR2_STATIC
+    ENDM
 
 ; --- WR2: Port B configuration (base flags only) ---
 ; Usage: DMA_WR2_BASE src, addrh, has_timing
 ;  src        = Source select (DMA_SRC_MEM or DMA_SRC_IO)
 ;  addrh      = Address mode (DMA_ADDRH_DEC/INC/FIXED)
 ;  has_timing = 0 (no timing byte) or 1 (timing byte present)
-macro DMA_WR2_BASE src, addrh, has_timing
-    local param
-    param = src | (addrh << 1) | (has_timing << 3)
-    DMA_WR2_RAW param
-endm
+    MACRO DMA_WR2_BASE src, addrh, has_timing
+        DMA_WR2_RAW (src | (addrh << 1) | (has_timing << 3))
+    ENDM
 
 ; --- WR2: Port B variable timing ---
 ; Usage: DMA_WR2_TIMING timing, prescaler
-macro DMA_WR2_TIMING timing, prescaler
-    local param
-    param = timing | (prescaler << 5)
-    DMA_WRx param, DMA_WR2_TIMING_MASK, DMA_WR2_TIMING_STATIC
-endm
+    MACRO DMA_WR2_TIMING timing, prescaler
+        DMA_WRx (timing | (prescaler << 5)), DMA_WR2_TIMING_MASK, DMA_WR2_TIMING_STATIC
+    ENDM
+
 ; --- WR2: Write base register and optional timing byte ---
 ; Usage: DMA_WR2 src, addrh, timing
 ;  src     = DMA_SRC_MEM or DMA_SRC_IO
 ;  addrh   = DMA_ADDRH_DEC/INC/FIXED
 ;  timing  = -1 (no timing byte) or timing value
-macro DMA_WR2 src, addrh, timing
-    local param
-    param = src | (addrh << 1) | ((timing != -1) << 3)
-    DMA_WR2_RAW param
-    if timing != -1
-        DMA_WR2_TIMING timing, 0
-    endif
-endm
+    MACRO DMA_WR2 src, addrh, timing 
+        DMA_WR2_BASE src, addrh, (timing != -1)
+        if timing != -1
+            DMA_WR2_TIMING timing, 0
+        endif
+    ENDM
 
-macro DMA_WR3_RAW param
-    DMA_WRx (param << DMA_WR3_LSB), DMA_WR3_MASK, DMA_WR3_STATIC
-endm
+    MACRO DMA_WR3_RAW param
+        DMA_WRx (param << DMA_WR3_LSB), DMA_WR3_MASK, DMA_WR3_STATIC
+    ENDM
 
 ; --- WR3: Activation ---
 ; Usage: DMA_WR3 enable
-macro DMA_WR3 enable
-    local param
-    param = enable << 6
-    DMA_WR3_RAW param
-endm
+    MACRO DMA_WR3 enable
+        DMA_WR3_RAW (enable << 6)
+    ENDM
 
-macro DMA_WR4_RAW param
-    DMA_WRx (param << DMA_WR4_LSB), DMA_WR4_MASK, DMA_WR4_STATIC
-endm
+    MACRO DMA_WR4_RAW param
+        DMA_WRx (param << DMA_WR4_LSB), DMA_WR4_MASK, DMA_WR4_STATIC
+    ENDM
+
+; --- WR4: Port B, timing and interrupt configuration ---
+; Usage: DMA_WR4_BASE has_pa_lsb, has_pa_msb, mode
+    MACRO DMA_WR4_BASE has_pa_lsb, has_pa_msb, mode
+        DMA_WR4_RAW (has_pa_lsb << 2) | (has_pa_msb << 3) | (mode << 5)
+    ENDM
 
 ; --- WR4: Port B, timing and interrupt configuration ---
 ; Usage: DMA_WR4 pa_lsb, pa_msb, mode
-macro DMA_WR4 pa_lsb, pa_msb, mode
-    local param
-    param = (pa_lsb << 2) | (pa_msb << 3) | (mode << 5)
-    DMA_WR4_RAW param
-endm
+    MACRO DMA_WR4 pa_lsb, pa_msb, mode
+        DMA_WR4_BASE (pa_lsb != -1), (pa_msb != -1), mode
+    ENDM
 
-macro DMA_WR5_RAW param
-    DMA_WRx (param << DMA_WR5_LSB), DMA_WR5_MASK, DMA_WR5_STATIC
-endm
+    MACRO DMA_WR5_RAW param
+        DMA_WRx (param << DMA_WR5_LSB), DMA_WR5_MASK, DMA_WR5_STATIC
+    ENDM
 
 ; --- WR5: Ready and stop configuration ---
 ; Usage: DMA_WR5 ready_config, stop_config
-macro DMA_WR5 ready_config, stop_config
-    local param
-    param = (ready_config << 4) | (stop_config << 5)
-    DMA_WR5_RAW param
-endm
+    MACRO DMA_WR5 ready_config, stop_config
+        DMA_WR5_RAW (ready_config << 4) | (stop_config << 5)
+    ENDM
 
-macro DMA_WR6_RAW param
-    DMA_WRx (param << DMA_WR6_LSB), DMA_WR6_MASK, DMA_WR6_STATIC
-endm
+    MACRO DMA_WR6_RAW param
+        DMA_WRx (param << DMA_WR6_LSB), DMA_WR6_MASK, DMA_WR6_STATIC
+    ENDM
 
 ; --- WR6: Command register (base only) ---
 ; Usage: DMA_WR6_BASE command
-macro DMA_WR6_BASE command
-    local param
-    param = (command << 2)
-    DMA_WR6_RAW param
-endm
+    MACRO DMA_WR6_BASE command
+        DMA_WR6_RAW (command << 2)
+    ENDM
 
 ; --- WR6: Read mask ---
 ; Usage: DMA_WR6_READMASK mask
-macro DMA_WR6_READMASK mask
-    DMA_WRx mask, DMA_WR6_READMASK_MASK, DMA_WR6_READMASK_STATIC
-endm
+    MACRO DMA_WR6_READMASK mask
+        DMA_WRx mask, DMA_WR6_READMASK_MASK, DMA_WR6_READMASK_STATIC
+    ENDM
 
 ; --- WR6: Command register with optional parameter ---
 ; Usage: DMA_WR6 command, [optional_param]
 ; If command = %01110 (DMA_COMMAND_READMASK), emit extra byte using DMA_WR6_READMASK
-macro DMA_WR6 command, optional_param
-    DMA_WR6_BASE command
-    if command == %01110
-        DMA_WR6_READMASK optional_param
-    endif
-endm
+    MACRO DMA_WR6 command, optional_param
+        DMA_WR6_BASE command
+        if command == %01110
+            DMA_WR6_READMASK optional_param
+        endif
+    ENDM
 
 ; -----------------------------------------------------------
 ; SECTION: EXAMPLES
@@ -281,4 +264,5 @@ endm
 ; endBlockDmaCode:
 ; dmaBlockCodeLen equ endBlockDmaCode
 ; -----------------------------------------------------------
-; END OF
+; END OF FILE
+; -----------------------------------------------------------
