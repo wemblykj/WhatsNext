@@ -1,7 +1,7 @@
     OPT     --zxnext    
     DEVICE  ZXSPECTRUMNEXT
 
-    INCLUDE "dma.inc"
+    INCLUDE "dma-defs.inc"
     
 ; -----------------------------------------------------------
 ; SECTION: Main code (code under test)
@@ -10,7 +10,7 @@
     INCLUDE "dma-vars.inc"
 
     ORG $8000                       ; Main code starting at $8000
-    INCLUDE "dma.asm"
+    INCLUDE "dma-lib.asm"
 
 ; -----------------------------------------------------------
 ; SECTION: Test code

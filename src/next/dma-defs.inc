@@ -14,7 +14,7 @@
 DMA_PORT_MB02 equ 0x0B ; Data port for DMA operations
 DMA_PORT_DATAGEAR equ 0x6B ; Data port for DMA operations
 
-DMA_PORT_NEXT equ DMA_PORT_DATAGEAR
+DMA_PORT_NEXT   equ DMA_PORT_DATAGEAR
 
 DMA_SRC_MEM     equ %00    ; Port is memory
 DMA_SRC_IO      equ %01    ; Port is I/O
@@ -53,7 +53,7 @@ DMA_WR1_TIMING_LSB     equ 0
 DMA_WR2_MASK    equ %01111000
 DMA_WR2_STATIC  equ %00000000
 DMA_WR2_LSB     equ 3
-DMA_WR2_TIMING_MASK    equ %11100011
+DMA_WR2_TIMING_MASK    equ %00100011
 DMA_WR2_TIMING_STATIC  equ %00000000
 DMA_WR2_TIMING_LSB     equ 0
 
@@ -105,8 +105,8 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; --- WR0: Write base register and optional parameter bytes ---
 ; Usage: DMA_WR0 pa_lsb, pa_msb, bl_lsb, bl_msb
 ; Each parameter: -1 = not present, otherwise value to emit as extra byte
-    MACRO DMA_WR0 pa_lsb, pa_msb, bl_lsb, bl_msb
-        DMA_WR0_BASE (pa_lsb != -1),  (pa_msb != -1), (bl_lsb != -1), (bl_msb != -1)
+    MACRO DMA_WR0 td, pa_lsb, pa_msb, bl_lsb, bl_msb
+        DMA_WR0_BASE td, (pa_lsb != -1),  (pa_msb != -1), (bl_lsb != -1), (bl_msb != -1)
         if pa_lsb != -1
             db pa_lsb
         endif
@@ -166,9 +166,9 @@ DMA_WR6_READMASK_STATIC equ %10000000
     ENDM
 
 ; --- WR2: Port B variable timing ---
-; Usage: DMA_WR2_TIMING timing, prescaler
-    MACRO DMA_WR2_TIMING timing, prescaler
-        DMA_WRx (timing | (prescaler << 5)), DMA_WR2_TIMING_MASK, DMA_WR2_TIMING_STATIC
+; Usage: DMA_WR2_TIMING timing, prescalar
+    MACRO DMA_WR2_TIMING timing, prescalar
+        DMA_WRx (timing | (prescalar << 5)), DMA_WR2_TIMING_MASK, DMA_WR2_TIMING_STATIC
     ENDM
 
 ; --- WR2: Write base register and optional timing byte ---
@@ -176,10 +176,14 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ;  src     = DMA_SRC_MEM or DMA_SRC_IO
 ;  addrh   = DMA_ADDRH_DEC/INC/FIXED
 ;  timing  = -1 (no timing byte) or timing value
-    MACRO DMA_WR2 src, addrh, timing 
+    MACRO DMA_WR2 src, addrh, timing, prescalar
         DMA_WR2_BASE src, addrh, (timing != -1)
-        if timing != -1
+        if timing != -1 and prescalar != -1
+            DMA_WR2_TIMING timing, prescalar
+        elseif timing != -1
             DMA_WR2_TIMING timing, 0
+        elseif prescalar != -1
+            DMA_WR2_TIMING 0, prescalar
         endif
     ENDM
 
@@ -190,7 +194,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; --- WR3: Activation ---
 ; Usage: DMA_WR3 enable
     MACRO DMA_WR3 enable
-        DMA_WR3_RAW (enable << 6)
+        DMA_WR3_RAW enable
     ENDM
 
     MACRO DMA_WR4_RAW param
@@ -200,13 +204,19 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; --- WR4: Port B, timing and interrupt configuration ---
 ; Usage: DMA_WR4_BASE has_pa_lsb, has_pa_msb, mode
     MACRO DMA_WR4_BASE has_pa_lsb, has_pa_msb, mode
-        DMA_WR4_RAW (has_pa_lsb << 2) | (has_pa_msb << 3) | (mode << 5)
+        DMA_WR4_RAW (has_pa_lsb | (has_pa_msb << 1) | (mode << 3))
     ENDM
 
 ; --- WR4: Port B, timing and interrupt configuration ---
 ; Usage: DMA_WR4 pa_lsb, pa_msb, mode
     MACRO DMA_WR4 pa_lsb, pa_msb, mode
         DMA_WR4_BASE (pa_lsb != -1), (pa_msb != -1), mode
+        if pa_lsb != -1
+            db pa_lsb
+        endif
+        if pa_msb != -1
+            db pa_msb
+        endif
     ENDM
 
     MACRO DMA_WR5_RAW param
@@ -216,7 +226,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; --- WR5: Ready and stop configuration ---
 ; Usage: DMA_WR5 ready_config, stop_config
     MACRO DMA_WR5 ready_config, stop_config
-        DMA_WR5_RAW (ready_config << 4) | (stop_config << 5)
+        DMA_WR5_RAW (ready_config | (stop_config << 1))
     ENDM
 
     MACRO DMA_WR6_RAW param
@@ -226,7 +236,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; --- WR6: Command register (base only) ---
 ; Usage: DMA_WR6_BASE command
     MACRO DMA_WR6_BASE command
-        DMA_WR6_RAW (command << 2)
+        DMA_WR6_RAW command
     ENDM
 
 ; --- WR6: Read mask ---

@@ -30,6 +30,15 @@
 ;    ret
 ;
 
+; dma_upload
+; DMA block of memory from one location to another
+; hl   = program address
+; b    = length of program
+dma_upload:
+    ld  c, DMA_PORT_NEXT                  ;  set DMA data port
+    otir                                  ;  output program block code to DMA data port
+    ret
+
 ; dma_block_transfer
 ; DMA block of memory from one location to another
 ; hl   = source address
@@ -41,9 +50,7 @@ dma_block_transfer:
     ld  (dma_program_block_dest), de      ;  update destination address in program block
     ld  hl, dma_program_block_transfer    ;  load start of program block code
     ld  b, dmaProgramBlockLen             ;  load length of program block code
-    ld  c, DMA_PORT_NEXT                  ;  set DMA data port
-    otir                                  ;  output program block code to DMA data port
-    ret
+    jr  dma_upload
 
 ; -----------------------------------------------------------
 ; END OF FILE
