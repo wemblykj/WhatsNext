@@ -53,7 +53,7 @@ DMA_WR1_TIMING_LSB     equ 0
 DMA_WR2_MASK    equ %01111000
 DMA_WR2_STATIC  equ %00000000
 DMA_WR2_LSB     equ 3
-DMA_WR2_TIMING_MASK    equ %00100011
+DMA_WR2_TIMING_MASK    equ %01100011
 DMA_WR2_TIMING_STATIC  equ %00000000
 DMA_WR2_TIMING_LSB     equ 0
 
@@ -61,7 +61,7 @@ DMA_WR3_MASK    equ %01000000
 DMA_WR3_STATIC  equ %10000000
 DMA_WR3_LSB     equ 6
 
-DMA_WR4_MASK    equ %01111100
+DMA_WR4_MASK    equ %01101100
 DMA_WR4_STATIC  equ %10000001
 DMA_WR4_LSB     equ 2
 
@@ -79,6 +79,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; -----------------------------------------------------------
 ; SECTION: GENERIC MACRO FOR REGISTER CONSTRUCTION (INTERNAL)
 ; -----------------------------------------------------------
+
 ; Usage: DMA_WRx param, mask, static
 ; Applies a mask (AND) and then ORs with static bits.
     MACRO DMA_WRx param, mask, static
@@ -106,7 +107,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; Usage: DMA_WR0 pa_lsb, pa_msb, bl_lsb, bl_msb
 ; Each parameter: -1 = not present, otherwise value to emit as extra byte
     MACRO DMA_WR0 td, pa_lsb, pa_msb, bl_lsb, bl_msb
-        DMA_WR0_BASE td, (pa_lsb != -1),  (pa_msb != -1), (bl_lsb != -1), (bl_msb != -1)
+        DMA_WR0_BASE td, (pa_lsb != -1)&1, (pa_msb != -1)&1, (bl_lsb != -1)&1, (bl_msb != -1)&1
         if pa_lsb != -1
             db pa_lsb
         endif
@@ -146,7 +147,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ;  addrh   = DMA_ADDRH_DEC/INC/FIXED
 ;  timing  = -1 (no timing byte) or timing value
     MACRO DMA_WR1 src, addrh, timing
-        DMA_WR1_BASE src, addrh, (timing != -1)
+        DMA_WR1_BASE src, addrh, (timing != -1)&1
         if timing != -1
             DMA_WR1_TIMING timing
         endif
@@ -177,7 +178,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ;  addrh   = DMA_ADDRH_DEC/INC/FIXED
 ;  timing  = -1 (no timing byte) or timing value
     MACRO DMA_WR2 src, addrh, timing, prescalar
-        DMA_WR2_BASE src, addrh, (timing != -1)
+        DMA_WR2_BASE src, addrh, (timing != -1)&1
         if timing != -1 and prescalar != -1
             DMA_WR2_TIMING timing, prescalar
         elseif timing != -1
@@ -210,7 +211,7 @@ DMA_WR6_READMASK_STATIC equ %10000000
 ; --- WR4: Port B, timing and interrupt configuration ---
 ; Usage: DMA_WR4 pa_lsb, pa_msb, mode
     MACRO DMA_WR4 pa_lsb, pa_msb, mode
-        DMA_WR4_BASE (pa_lsb != -1), (pa_msb != -1), mode
+        DMA_WR4_BASE (pa_lsb != -1)&1, (pa_msb != -1)&1, mode
         if pa_lsb != -1
             db pa_lsb
         endif
