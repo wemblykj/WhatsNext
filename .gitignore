@@ -2,6 +2,7 @@
 .vscode/
 
 # Build output
+build/
 *.nex
 *.bin
 *.lst
@@ -9,6 +10,7 @@
 *.o
 *.obj
 *.tmp
+*.sld
 
 # Sjasmplus intermediate files
 *.ihx
@@ -33,4 +35,3 @@ Thumbs.db
 *.test.*
 *.out
 
-# Node modules (if any JS tooling

@@ -37,7 +37,7 @@ Loop1:          dec     de                      ;// take 1 off the 1000
                 ld      (hl),a                  ;// clear the first 4096 bytes of memory
                 ld      de,0x4001
                 ld      bc,0x17ff               ;// copy 6143 bytes from 0x4000 to 0x4001
-                call    dma_block_transfer 
+                call    DMA_BLOCK_TRANSFER 
 
                 ld      a,1                     ;// change this for different colours
                 out     ($fe),a 
@@ -66,11 +66,12 @@ wait_loop:
                 ret
 
                 INCLUDE "dma-defs.inc"
+                INCLUDE "dma-macros.inc"
                 INCLUDE "dma-lib.asm"
 
                 INCLUDE "dma-vars.inc"
 
-                SAVENEX OPEN "dma-sample.nex", StartAddress
+                SAVENEX OPEN "build/dma-sample.nex", StartAddress
                 SAVENEX CORE 3, 0, 0                                ;// Next core 3.0.0 required as minimum
                 SAVENEX CFG  0
                 SAVENEX AUTO

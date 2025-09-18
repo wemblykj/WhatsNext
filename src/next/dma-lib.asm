@@ -1,56 +1,50 @@
 ; -----------------------------------------------------------
-; File:        dma.asm
-; Project:     WemblyKJ Next
-; Author:      [Your Name]
-; Date:        [YYYY-MM-DD]
-; Description: Z80 sjasmplus compatible source file for DMA
-
-; This file uses sjasmplus SECTIONS to separate code and data.
-; The ORIGIN of each section should be defined in the top-level assembly file.
-; Example (in your top-level .asm file):
-;   SECTION code_user: ORG $8000
-;   SECTION data_user: ORG $C000
-
-;              (Direct Memory Access) routines and definitions.
+; File:        dma-lib.asm
+; Project:     WhatsNext - DMA Routines
+; Author:      Paul Wightmore
+; Date:        2025-09-18
+; Description: Z80 sjasmplus compatible DMA library routines
+;              for the ZX Spectrum Next. Provides routines to
+;              patch and upload a generic DMA program block.
+;              See: https://wiki.specnext.dev/DMA
+; 
+;              This module depends on dma-vars.inc being
+;              included beforehand, as it uses the DMA program
+;              block and patchable labels defined there.
+; License:     MIT License
 ; -----------------------------------------------------------
 
 ; -----------------------------------------------------------
-; SECTION: Includes and Equates
+; DMA_UPLOAD
+; Uploads a DMA program block to the DMA controller.
+; Parameters:
+;   hl = address of program block
+;   b  = length of program block (bytes)
+; Uses:
+;   c  = DMA port (set to DMA_PORT_NEXT)
 ; -----------------------------------------------------------
-;#include "hardware.inc"      ; Example include
-;#include "macros.inc"        ; Example include
-
-;    INCLUDE "dma.inc"
-
-; -----------------------------------------------------------
-; SECTION: Library Functions (Subroutines)
-; -----------------------------------------------------------
-;dma_init:
-;    ; Initialize DMA controller
-;    ret
-;
-
-; dma_upload
-; DMA block of memory from one location to another
-; hl   = program address
-; b    = length of program
-dma_upload:
-    ld  c, DMA_PORT_NEXT                  ;  set DMA data port
-    otir                                  ;  output program block code to DMA data port
+DMA_UPLOAD:
+    ld  c, DMA_PORT_NEXT                  ; Set DMA data port (ZX Next default)
+    otir                                  ; Output program block to DMA data port
     ret
 
-; dma_block_transfer
-; DMA block of memory from one location to another
-; hl   = source address
-; de   = address of destination
-; bc   = length of data
-dma_block_transfer:
-    ld  (dma_program_block_source), hl    ;  update source address in program block
-    ld  (dma_program_block_length), bc    ;  update block length in program block
-    ld  (dma_program_block_dest), de      ;  update destination address in program block
-    ld  hl, dma_program_block_transfer    ;  load start of program block code
-    ld  b, dmaProgramBlockLen             ;  load length of program block code
-    jr  dma_upload
+; -----------------------------------------------------------
+; DMA_BLOCK_TRANSFER
+; Patches the generic DMA program block with the given source,
+; destination, and length, then uploads it to the DMA controller.
+; Parameters:
+;   hl = source address (16-bit)
+;   de = destination address (16-bit)
+;   bc = length of data (16-bit, bytes)
+; Uses patchable fields and program block from dma-vars.inc
+; -----------------------------------------------------------
+DMA_BLOCK_TRANSFER:
+    ld  (DMA_PROGRAM_BLOCK_SOURCE), hl    ; Patch source address in program block
+    ld  (DMA_PROGRAM_BLOCK_LENGTH), bc    ; Patch block length in program block
+    ld  (DMA_PROGRAM_BLOCK_DEST), de      ; Patch destination address in program block
+    ld  hl, DMA_PROGRAM_BLOCK_TRANSFER    ; Load start address of program block
+    ld  b, DMA_PROGRAM_BLOCK_LEN          ; Load length of program block
+    jr  DMA_UPLOAD
 
 ; -----------------------------------------------------------
 ; END OF FILE
