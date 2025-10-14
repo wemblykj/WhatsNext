@@ -11,8 +11,8 @@
 ; -----------------------------------------------------------
 ; DMA PORT CONSTANTS
 ; -----------------------------------------------------------
-DMA_PORT_MB02         equ 0x0B    ; MB02 DMA port (legacy)
-DMA_PORT_DATAGEAR     equ 0x6B    ; Datagear DMA port (ZX Next default)
+DMA_PORT_MB02         equ $0B    ; MB02 DMA port (legacy)
+DMA_PORT_DATAGEAR     equ $6B    ; Datagear DMA port (ZX Next default)
 DMA_PORT_NEXT         equ DMA_PORT_DATAGEAR ; Default Next DMA port
 
 ; -----------------------------------------------------------

@@ -39,11 +39,58 @@ DMA_UPLOAD:
 ; Uses patchable fields and program block from dma-vars.inc
 ; -----------------------------------------------------------
 DMA_BLOCK_TRANSFER:
-    ld  (DMA_PROGRAM_BLOCK_SOURCE), hl    ; Patch source address in program block
-    ld  (DMA_PROGRAM_BLOCK_LENGTH), bc    ; Patch block length in program block
-    ld  (DMA_PROGRAM_BLOCK_DEST), de      ; Patch destination address in program block
-    ld  hl, DMA_PROGRAM_BLOCK_TRANSFER    ; Load start address of program block
-    ld  b, DMA_PROGRAM_BLOCK_LEN          ; Load length of program block
+    ld  (DMA_PROGRAM_CONFIG_SOURCE), hl    ; Patch source address in program block
+    ld  (DMA_PROGRAM_CONFIG_LENGTH), bc    ; Patch block length in program block
+    ld  (DMA_PROGRAM_CONFIG_DEST), de      ; Patch destination address in program block
+    ld  hl, DMA_PROGRAM_CONFIG             ; Load start address of program block
+    ld  b, DMA_PROGRAM_UPLOAD_LEN          ; Load length of program block
+    jr  DMA_UPLOAD
+
+; -----------------------------------------------------------
+; DMA_BLOCK_SET
+; And patches the DMA program block to copy length-1 bytes from
+; the destination address to destination address + 1.
+; This results in a block of memory being set to the give value.
+; Parameters:
+;   a  = value to set (8-bit)
+;   de = destination address (16-bit)
+;   bc = length of data (16-bit, bytes)
+; Uses patchable fields and program block from dma-vars.inc
+; -----------------------------------------------------------
+DMA_BLOCK_SET:
+    ld  hl, de
+    ld  (hl), a
+    inc de
+    dec bc
+    jr  DMA_BLOCK_TRANSFER
+
+; -----------------------------------------------------------
+; DMA_BLOCK_SET
+; And patches the DMA program block to copy length-1 bytes from
+; the destination address to destination address + 1.
+; This results in a block of memory being set to the give value.
+; Parameters:
+;   de = destination address (16-bit)
+;   bc = length of data (16-bit, bytes)
+; Uses patchable fields and program block from dma-vars.inc
+; -----------------------------------------------------------
+DMA_BLOCK_CLEAR:
+    xor a
+    jr  DMA_BLOCK_SET
+
+; -----------------------------------------------------------
+; DMA_BLOCK_TRANSFER
+; Patches the generic DMA program block with the given source,
+; destination, and length, then uploads it to the DMA controller.
+; Parameters:
+;   hl = source address (16-bit)
+;   de = destination address (16-bit)
+;   bc = length of data (16-bit, bytes)
+; Uses patchable fields and program block from dma-vars.inc
+; -----------------------------------------------------------
+DMA_RESTART:
+    ld  hl, DMA_PROGRAM_RESTART    ; Load start address of program block
+    ld  b, DMA_PROGRAM_RESTART_LEN          ; Load length of program block
     jr  DMA_UPLOAD
 
 ; -----------------------------------------------------------
