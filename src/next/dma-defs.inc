@@ -1,7 +1,7 @@
 ; -----------------------------------------------------------
 ; File:        dma-defs.inc
 ; Project:     WhatsNext - DMA Routines
-; Description: Equates and constants for the ZX Spectrum Next
+; Description: equates and constants for the ZX Spectrum Next
 ;              DMA controller, as per the official documentation:
 ;              https://wiki.specnext.dev/DMA
 ; Author:      Paul Wightmore. (c) 2025

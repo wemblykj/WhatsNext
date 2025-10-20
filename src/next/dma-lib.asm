@@ -15,7 +15,7 @@
 ; -----------------------------------------------------------
 
 ; -----------------------------------------------------------
-; DMA_UPLOAD
+; DmaUpload
 ; Uploads a DMA program block to the DMA controller.
 ; Parameters:
 ;   hl = address of program block
@@ -23,63 +23,69 @@
 ; Uses:
 ;   c  = DMA port (set to DMA_PORT_NEXT)
 ; -----------------------------------------------------------
-DMA_UPLOAD:
+DmaUpload:
     ld  c, DMA_PORT_NEXT                  ; Set DMA data port (ZX Next default)
     otir                                  ; Output program block to DMA data port
     ret
 
 ; -----------------------------------------------------------
-; DMA_BLOCK_TRANSFER
+; DmaBlockTransfer
 ; Patches the generic DMA program block with the given source,
 ; destination, and length, then uploads it to the DMA controller.
+; Currently only configured for memory-to-memory transfers.
 ; Parameters:
 ;   hl = source address (16-bit)
 ;   de = destination address (16-bit)
 ;   bc = length of data (16-bit, bytes)
 ; Uses patchable fields and program block from dma-vars.inc
 ; -----------------------------------------------------------
-DMA_BLOCK_TRANSFER:
+DmaBlockTransfer:
     ld  (DMA_PROGRAM_CONFIG_SOURCE), hl    ; Patch source address in program block
     ld  (DMA_PROGRAM_CONFIG_LENGTH), bc    ; Patch block length in program block
     ld  (DMA_PROGRAM_CONFIG_DEST), de      ; Patch destination address in program block
     ld  hl, DMA_PROGRAM_CONFIG             ; Load start address of program block
     ld  b, DMA_PROGRAM_UPLOAD_LEN          ; Load length of program block
-    jr  DMA_UPLOAD
+    jr  DmaUpload
 
 ; -----------------------------------------------------------
-; DMA_BLOCK_SET
-; And patches the DMA program block to copy length-1 bytes from
-; the destination address to destination address + 1.
-; This results in a block of memory being set to the give value.
+; DmaMemCopy
+; Copy length bytes from source to destination.
+; Parameters:
+;   hl = source address (16-bit)
+;   de = destination address (16-bit)
+;   bc = length of data (16-bit, bytes)
+; Uses patchable fields and program block from dma-vars.inc
+; -----------------------------------------------------------
+DmaMemCopy: equ DmaBlockTransfer           ; Just an alias for [mem only] block transfer for now
+
+; -----------------------------------------------------------
+; DmaMemSet
+; Set length bytes, starting at destination, to the given value.
 ; Parameters:
 ;   a  = value to set (8-bit)
 ;   de = destination address (16-bit)
 ;   bc = length of data (16-bit, bytes)
 ; Uses patchable fields and program block from dma-vars.inc
 ; -----------------------------------------------------------
-DMA_BLOCK_SET:
+DmaMemSet:
     ld  hl, de
     ld  (hl), a
     inc de
     dec bc
-    jr  DMA_BLOCK_TRANSFER
+    jr  DmaMemCopy
 
 ; -----------------------------------------------------------
-; DMA_BLOCK_SET
-; And patches the DMA program block to copy length-1 bytes from
-; the destination address to destination address + 1.
-; This results in a block of memory being set to the give value.
-; Parameters:
-;   de = destination address (16-bit)
+; DmaZeroMem
+; Zero length bytes starting at destination.
 ;   bc = length of data (16-bit, bytes)
 ; Uses patchable fields and program block from dma-vars.inc
 ; -----------------------------------------------------------
-DMA_BLOCK_CLEAR:
+DmaZeroMem:
     xor a
-    jr  DMA_BLOCK_SET
+    jr  DmaMemSet
 
 ; -----------------------------------------------------------
-; DMA_BLOCK_TRANSFER
+; DmaRestart
 ; Patches the generic DMA program block with the given source,
 ; destination, and length, then uploads it to the DMA controller.
 ; Parameters:
@@ -88,10 +94,10 @@ DMA_BLOCK_CLEAR:
 ;   bc = length of data (16-bit, bytes)
 ; Uses patchable fields and program block from dma-vars.inc
 ; -----------------------------------------------------------
-DMA_RESTART:
+DmaRestart:
     ld  hl, DMA_PROGRAM_RESTART    ; Load start address of program block
     ld  b, DMA_PROGRAM_RESTART_LEN          ; Load length of program block
-    jr  DMA_UPLOAD
+    jr  DmaUpload
 
 ; -----------------------------------------------------------
 ; END OF FILE
